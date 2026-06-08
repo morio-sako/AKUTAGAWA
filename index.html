@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>芥川龍之介 文学史クイズ</title>
+    <style>
+        /* 全体のスタイル設定 */
+        body {
+            font-family: 'Yu Mincho', 'Sawarabi Mincho', serif; /* 大正ロマン風の明朝体 */
+            background-color: #2c2c2c;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* アプリのメインコンテナ */
+        #app-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #fdfaf5;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー部分 */
+        header {
+            background-color: #8b1c1c; /* レトロなえんじ色 */
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            border-bottom: 4px solid #c8a753; /* 金色のアクセント */
+        }
+
+        /* 画面切り替え用のクラス */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* スタート画面の入力フォーム */
+        .input-group {
+            margin: 15px auto;
+            width: 80%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .input-group label {
+            font-weight: bold;
+            width: 30%;
+            text-align: right;
+            margin-right: 15px;
+        }
+        .input-group input {
+            width: 60%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .btn {
+            background-color: #8b1c1c;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 30px auto;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #a52a2a;
+        }
+
+        /* クイズ画面 */
+        #quiz-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15; /* 背景画像を薄くする */
+            z-index: 0;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        .quiz-content {
+            position: relative;
+            z-index: 1;
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-number {
+            font-size: 20px;
+            color: #8b1c1c;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 22px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #c8a753;
+            color: #333;
+            padding: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .option-btn:hover {
+            background-color: #c8a753;
+            color: #fff;
+        }
+
+        /* 結果画面 */
+        .result-content {
+            padding: 40px;
+            text-align: center;
+        }
+        .result-info {
+            font-size: 20px;
+            margin-bottom: 20px;
+            background-color: #f0e6d2;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px dashed #8b1c1c;
+        }
+        .score-display {
+            font-size: 48px;
+            color: #8b1c1c;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .feedback-text {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <header>芥川龍之介 文学史クイズ</header>
+
+    <div id="start-screen" class="screen active">
+        <div style="padding: 40px 20px;">
+            <p style="text-align: center; margin-bottom: 30px; font-size: 18px;">
+                大正文学の巨星・芥川龍之介の軌跡を辿る全10問のクイズです。<br>情報を入力して開始してください。
+            </p>
+            <div class="input-group">
+                <label for="grade-class">学年・クラス</label>
+                <input type="text" id="grade-class" placeholder="例: 2年A組">
+            </div>
+            <div class="input-group">
+                <label for="student-no">名簿番号</label>
+                <input type="number" id="student-no" placeholder="例: 15">
+            </div>
+            <div class="input-group">
+                <label for="student-name">氏名</label>
+                <input type="text" id="student-name" placeholder="例: 芥川 太郎">
+            </div>
+            <button class="btn" onclick="startQuiz()">クイズを始める</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen" style="position: relative;">
+        <div id="quiz-background"></div>
+        <div class="quiz-content">
+            <div class="question-number" id="q-number">第1問</div>
+            <div class="question-text" id="q-text">ここに問題文が表示されます。</div>
+            <div class="options-container" id="options-area">
+                </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <div class="result-content">
+            <h2>修了証・結果発表</h2>
+            <div class="result-info" id="result-user-info">
+                </div>
+            <p>あなたの正答率は…</p>
+            <div class="score-display" id="result-score">0%</div>
+            <p class="feedback-text" id="result-feedback">お疲れ様でした！</p>
+            <button class="btn" onclick="location.reload()">最初からやり直す</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // クイズのデータ（問題、選択肢、正解インデックス、背景画像URL）
+    // ※画像URLは動作確認用としてフリーのプレースホルダー画像(picsum.photos)を使用しています。
+    const quizData = [
+        {
+            question: "芥川龍之介が中心となって活躍し、理知的な構成や技巧を凝らした作風で知られる大正時代の文学流派は何と呼ばれるでしょうか？",
+            options: ["自然主義", "新思潮派", "白樺派", "耽美派"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa1/800/600"
+        },
+        {
+            question: "芥川龍之介の初期の短編小説「鼻」を絶賛し、彼を文壇に送り出すきっかけを作った近代文学の巨匠は誰でしょうか？",
+            options: ["森鴎外", "志賀直哉", "夏目漱石", "谷崎潤一郎"],
+            correct: 2,
+            bgImage: "https://picsum.photos/seed/akutagawa2/800/600"
+        },
+        {
+            question: "「羅生門」や「鼻」「芋粥」など、初期の代表作の多くが出典としている古典の説話集は何でしょうか？",
+            options: ["今昔物語集", "宇治拾遺物語", "日本霊異記", "徒然草"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa3/800/600"
+        },
+        {
+            question: "人間のエゴイズムを冷徹な視点で描き出した、知性を重んじて計算された構成を持つ芥川の作風を示す言葉はどれでしょうか？",
+            options: ["ロマン主義", "人道主義", "プロレタリア文学", "理知主義"],
+            correct: 3,
+            bgImage: "https://picsum.photos/seed/akutagawa4/800/600"
+        },
+        {
+            question: "晩年の彼が自殺の動機として遺書に記し、当時の知識人たちに大きな衝撃を与えた言葉は何でしょうか？",
+            options: ["ぼんやりした不安", "大いなる悲哀", "時代への絶望", "芸術の敗北"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa5/800/600"
+        },
+        {
+            question: "「物語の面白さ」を重視する作家と交わした文学論争において、「筋のない小説（詩的抒情）」の価値を主張した芥川。論争相手は誰？",
+            options: ["川端康成", "谷崎潤一郎", "菊池寛", "永井荷風"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa6/800/600"
+        },
+        {
+            question: "芥川の死後、菊池寛が創設した「芥川賞」は、どのような作品・作家を対象とした文学賞でしょうか？",
+            options: ["中堅・ベテランの大衆文学", "新進作家の純文学", "新人作家の推理小説", "海外の翻訳文学"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa7/800/600"
+        },
+        {
+            question: "芥川龍之介が残した代表的な児童向け童話作品はどれでしょうか？",
+            options: ["銀河鉄道の夜", "蜘蛛の糸", "泣いた赤おに", "ごんぎつね"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa8/800/600"
+        },
+        {
+            question: "室町〜安土桃山時代のキリスト教渡来の時代を舞台にした「奉教人の死」などの一連の作品群を何と呼ぶでしょうか？",
+            options: ["切支丹物", "開化物", "江戸物", "鎌倉物"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa9/800/600"
+        },
+        {
+            question: "芥川らが活躍した大正時代の文学潮流は、「ありのままの現実を描こうとする流派」への反動でした。この潮流の総称は？",
+            options: ["プロレタリア文学", "浪漫主義文学", "反自然主義文学", "啓蒙主義文学"],
+            correct: 2,
+            bgImage: "https://picsum.photos/seed/akutagawa10/800/600"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    
+    // ユーザー情報
+    let userInfo = {
+        gradeClass: "",
+        studentNo: "",
+        name: ""
+    };
+
+    // 画面切り替え関数
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // クイズ開始
+    function startQuiz() {
+        const gradeClass = document.getElementById('grade-class').value.trim();
+        const studentNo = document.getElementById('student-no').value.trim();
+        const studentName = document.getElementById('student-name').value.trim();
+
+        if (!gradeClass || !studentNo || !studentName) {
+            alert("学年・クラス、名簿番号、氏名をすべて入力してください。");
+            return;
+        }
+
+        userInfo.gradeClass = gradeClass;
+        userInfo.studentNo = studentNo;
+        userInfo.name = studentName;
+
+        currentQuestionIndex = 0;
+        score = 0;
+        
+        loadQuestion();
+        showScreen('quiz-screen');
+    }
+
+    // 問題の読み込みと表示
+    function loadQuestion() {
+        const currentData = quizData[currentQuestionIndex];
+        
+        // テキストの更新
+        document.getElementById('q-number').innerText = `第 ${currentQuestionIndex + 1} 問 / 全 ${quizData.length} 問`;
+        document.getElementById('q-text').innerText = currentData.question;
+        
+        // 背景画像の更新
+        document.getElementById('quiz-background').style.backgroundImage = `url('${currentData.bgImage}')`;
+
+        // 選択肢の生成
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = ""; // 一旦クリア
+        
+        currentData.options.forEach((optionText, index) => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.innerText = optionText;
+            button.onclick = () => checkAnswer(index);
+            optionsArea.appendChild(button);
+        });
+    }
+
+    // 答え合わせと次の問題への遷移
+    function checkAnswer(selectedIndex) {
+        const correctIndex = quizData[currentQuestionIndex].correct;
+        
+        if (selectedIndex === correctIndex) {
+            score++;
+        }
+
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    // 結果画面の表示
+    function showResult() {
+        // 正答率の計算
+        const accuracyRate = Math.round((score / quizData.length) * 100);
+
+        // ユーザー情報の表示
+        const infoHtml = `
+            <strong>${userInfo.gradeClass}</strong><br>
+            出席番号: <strong>${userInfo.studentNo}</strong> 番<br>
+            氏名: <strong>${userInfo.name}</strong> さん
+        `;
+        document.getElementById('result-user-info').innerHTML = infoHtml;
+
+        // 正答率の表示
+        document.getElementById('result-score').innerText = `${accuracyRate} %`;
+
+        // フィードバックテキストの分岐
+        let feedback = "";
+        if (accuracyRate === 100) {
+            feedback = "素晴らしい！芥川龍之介について完璧に理解しています！";
+        } else if (accuracyRate >= 70) {
+            feedback = "よくできました！文学史の基礎がしっかり身についています。";
+        } else if (accuracyRate >= 40) {
+            feedback = "惜しい！授業ノートを見直して、もう一度挑戦してみましょう。";
+        } else {
+            feedback = "ここからがスタートです！文学史への理解を深めていきましょう。";
+        }
+        document.getElementById('result-feedback').innerText = feedback;
+
+        showScreen('result-screen');
+    }
+</script>
+
+</body>
+</html>
