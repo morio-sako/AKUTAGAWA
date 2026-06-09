@@ -155,26 +155,50 @@
             opacity: 0.8;
         }
 
-        /* 〇×フィードバックのスタイル */
+        /* === ド派手な〇×フィードバックのスタイル === */
         #feedback-overlay {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 250px;
+            font-size: 350px; /* サイズを巨大化 */
             font-weight: bold;
             z-index: 100;
             display: none;
             pointer-events: none;
-            text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.9);
-            animation: popIn 0.3s ease-out forwards;
+            /* transformとanimationは下の各クラスで上書きします */
         }
-        .feedback-correct { color: #e60012; } /* 赤色 */
-        .feedback-incorrect { color: #005bac; } /* 青色 */
 
-        @keyframes popIn {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        /* 正解時のスタイルとアニメーション */
+        .feedback-correct { 
+            color: #e60012; 
+            animation: flashyCorrect 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* 不正解時のスタイルとアニメーション */
+        .feedback-incorrect { 
+            color: #005bac; 
+            animation: flashyIncorrect 1.2s ease-in-out forwards;
+        }
+
+        /* 正解アニメーション：回転しながら巨大化し、黄金色に光ってから落ち着く */
+        @keyframes flashyCorrect {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-360deg); opacity: 0; text-shadow: 0 0 0px gold; }
+            40% { transform: translate(-50%, -50%) scale(1.3) rotate(20deg); opacity: 1; text-shadow: 0 0 100px gold, 0 0 150px #ff4500; }
+            60% { transform: translate(-50%, -50%) scale(0.9) rotate(-10deg); text-shadow: 0 0 50px gold; }
+            80% { transform: translate(-50%, -50%) scale(1.05) rotate(5deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; text-shadow: 0 0 30px rgba(255,255,255,0.9); }
+        }
+
+        /* 不正解アニメーション：上から急降下して激しく左右に揺れ、青く光る */
+        @keyframes flashyIncorrect {
+            0% { transform: translate(-50%, -200%) scale(3); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; text-shadow: 0 0 150px #00bfff; }
+            30% { transform: translate(-65%, -50%) rotate(-15deg); }
+            40% { transform: translate(-35%, -50%) rotate(15deg); }
+            50% { transform: translate(-65%, -50%) rotate(-15deg); }
+            60% { transform: translate(-35%, -50%) rotate(15deg); }
+            70% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; text-shadow: 0 0 30px rgba(255,255,255,0.9); }
         }
 
         /* 結果画面 */
@@ -238,4 +262,224 @@
                 <label for="student-name">氏名</label>
                 <input type="text" id="student-name" placeholder="例: 芥川 太郎">
             </div>
-            <button class="btn
+            <button class="btn" onclick="startQuiz()">クイズを始める</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen" style="position: relative;">
+        <div id="quiz-background"></div>
+        <div id="feedback-overlay"></div> <div class="quiz-content">
+            <div class="question-number" id="q-number">第1問</div>
+            <div class="question-text" id="q-text">ここに問題文が表示されます。</div>
+            <div class="options-container" id="options-area">
+                </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <div class="result-content">
+            <h2>修了証・結果発表</h2>
+            <div class="result-info" id="result-user-info">
+                </div>
+            <p>あなたの正答率は…</p>
+            <div class="score-display" id="result-score">0%</div>
+            <p class="feedback-text" id="result-feedback">お疲れ様でした！</p>
+            <button class="btn" onclick="location.reload()">もう一度解く</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // クイズのデータ
+    const quizData = [
+        {
+            question: "芥川龍之介が中心となって活躍し、理知的な構成や技巧を凝らした作風で知られる大正時代の文学流派は何と呼ばれるでしょうか？",
+            options: ["自然主義", "新思潮派", "白樺派", "耽美派"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa1/800/600"
+        },
+        {
+            question: "芥川龍之介の初期の短編小説「鼻」を絶賛し、彼を文壇に送り出すきっかけを作った近代文学の巨匠は誰でしょうか？",
+            options: ["森鴎外", "志賀直哉", "夏目漱石", "谷崎潤一郎"],
+            correct: 2,
+            bgImage: "https://picsum.photos/seed/akutagawa2/800/600"
+        },
+        {
+            question: "「羅生門」や「鼻」「芋粥」など、初期の代表作の多くが出典としている古典の説話集は何でしょうか？",
+            options: ["今昔物語集", "宇治拾遺物語", "日本霊異記", "徒然草"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa3/800/600"
+        },
+        {
+            question: "人間のエゴイズムを冷徹な視点で描き出した、知性を重んじて計算された構成を持つ芥川の作風を示す言葉はどれでしょうか？",
+            options: ["ロマン主義", "人道主義", "プロレタリア文学", "理知主義"],
+            correct: 3,
+            bgImage: "https://picsum.photos/seed/akutagawa4/800/600"
+        },
+        {
+            question: "晩年の彼が自殺の動機として遺書に記し、当時の知識人たちに大きな衝撃を与えた言葉は何でしょうか？",
+            options: ["ぼんやりした不安", "大いなる悲哀", "時代への絶望", "芸術の敗北"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa5/800/600"
+        },
+        {
+            question: "「物語の面白さ」を重視する作家と交わした文学論争において、「筋のない小説（詩的抒情）」の価値を主張した芥川。論争相手は誰？",
+            options: ["川端康成", "谷崎潤一郎", "菊池寛", "永井荷風"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa6/800/600"
+        },
+        {
+            question: "芥川の死後、菊池寛が創設した「芥川賞」は、どのような作品・作家を対象とした文学賞でしょうか？",
+            options: ["中堅・ベテランの大衆文学", "新進作家の純文学", "新人作家の推理小説", "海外の翻訳文学"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa7/800/600"
+        },
+        {
+            question: "芥川龍之介が残した代表的な児童向け童話作品はどれでしょうか？",
+            options: ["銀河鉄道の夜", "蜘蛛の糸", "泣いた赤おに", "ごんぎつね"],
+            correct: 1,
+            bgImage: "https://picsum.photos/seed/akutagawa8/800/600"
+        },
+        {
+            question: "室町〜安土桃山時代のキリスト教渡来の時代を舞台にした「奉教人の死」などの一連の作品群を何と呼ぶでしょうか？",
+            options: ["切支丹物", "開化物", "江戸物", "鎌倉物"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa9/800/600"
+        },
+        {
+            question: "芥川らが活躍した大正時代の文学潮流は、「ありのままの現実を描こうとする流派」への反動でした。この潮流の総称は？",
+            options: ["プロレタリア文学", "浪漫主義文学", "反自然主義文学", "啓蒙主義文学"],
+            correct: 2,
+            bgImage: "https://picsum.photos/seed/akutagawa10/800/600"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    
+    // ユーザー情報
+    let userInfo = {
+        userClass: "",
+        studentNo: "",
+        name: ""
+    };
+
+    // 画面切り替え関数
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // クイズ開始
+    function startQuiz() {
+        const userClass = document.getElementById('user-class').value;
+        const studentNo = document.getElementById('student-no').value.trim();
+        const studentName = document.getElementById('student-name').value.trim();
+
+        if (!studentNo || !studentName) {
+            alert("名簿番号と氏名を正しく入力してください。");
+            return;
+        }
+
+        userInfo.userClass = userClass;
+        userInfo.studentNo = studentNo;
+        userInfo.name = studentName;
+
+        currentQuestionIndex = 0;
+        score = 0;
+        
+        loadQuestion();
+        showScreen('quiz-screen');
+    }
+
+    // 問題の読み込みと表示
+    function loadQuestion() {
+        const currentData = quizData[currentQuestionIndex];
+        
+        document.getElementById('q-number').innerText = `第 ${currentQuestionIndex + 1} 問 / 全 ${quizData.length} 問`;
+        document.getElementById('q-text').innerText = currentData.question;
+        document.getElementById('quiz-background').style.backgroundImage = `url('${currentData.bgImage}')`;
+
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = ""; 
+        
+        currentData.options.forEach((optionText, index) => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.innerText = optionText;
+            button.onclick = () => checkAnswer(index, button);
+            optionsArea.appendChild(button);
+        });
+    }
+
+    // 答え合わせとド派手なフィードバック表示
+    function checkAnswer(selectedIndex, clickedButton) {
+        // 全てのボタンを一時的に無効化し、連打を防ぐ
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        const correctIndex = quizData[currentQuestionIndex].correct;
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        
+        // 前のアニメーションクラスをリセット（毎回アニメーションを最初から再生するため）
+        feedbackOverlay.classList.remove('feedback-correct', 'feedback-incorrect');
+        void feedbackOverlay.offsetWidth; // リフローを強制してアニメーションをリセット
+        
+        // 正誤判定と〇×の設定
+        if (selectedIndex === correctIndex) {
+            score++;
+            feedbackOverlay.innerText = "〇";
+            feedbackOverlay.classList.add('feedback-correct');
+        } else {
+            feedbackOverlay.innerText = "×";
+            feedbackOverlay.classList.add('feedback-incorrect');
+        }
+
+        // 〇×を表示
+        feedbackOverlay.style.display = "block";
+
+        // アニメーションをしっかり見せるために1.2秒(1200ms)待ってから次の問題へ
+        setTimeout(() => {
+            feedbackOverlay.style.display = "none";
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }, 1200);
+    }
+
+    // 結果画面の表示
+    function showResult() {
+        const accuracyRate = Math.round((score / quizData.length) * 100);
+
+        const infoHtml = `
+            <strong>${userInfo.userClass}</strong><br>
+            出席番号: <strong>${userInfo.studentNo}</strong> 番<br>
+            氏名: <strong>${userInfo.name}</strong> さん
+        `;
+        document.getElementById('result-user-info').innerHTML = infoHtml;
+        document.getElementById('result-score').innerText = `${accuracyRate} %`;
+
+        let feedback = "";
+        if (accuracyRate === 100) {
+            feedback = "素晴らしい！芥川龍之介について完璧に理解しています！";
+        } else if (accuracyRate >= 70) {
+            feedback = "よくできました！文学史の基礎がしっかり身についています。";
+        } else if (accuracyRate >= 40) {
+            feedback = "惜しい！授業ノートを見直して、もう一度挑戦してみましょう。";
+        } else {
+            feedback = "ここからがスタートです！文学史への理解を深めていきましょう。";
+        }
+        document.getElementById('result-feedback').innerText = feedback;
+
+        showScreen('result-screen');
+    }
+</script>
+
+</body>
+</html>
