@@ -160,27 +160,23 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            font-size: 350px; /* サイズを巨大化 */
+            font-size: 350px;
             font-weight: bold;
             z-index: 100;
             display: none;
             pointer-events: none;
-            /* transformとanimationは下の各クラスで上書きします */
         }
 
-        /* 正解時のスタイルとアニメーション */
         .feedback-correct { 
             color: #e60012; 
             animation: flashyCorrect 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* 不正解時のスタイルとアニメーション */
         .feedback-incorrect { 
             color: #005bac; 
             animation: flashyIncorrect 1.2s ease-in-out forwards;
         }
 
-        /* 正解アニメーション：回転しながら巨大化し、黄金色に光ってから落ち着く */
         @keyframes flashyCorrect {
             0% { transform: translate(-50%, -50%) scale(0) rotate(-360deg); opacity: 0; text-shadow: 0 0 0px gold; }
             40% { transform: translate(-50%, -50%) scale(1.3) rotate(20deg); opacity: 1; text-shadow: 0 0 100px gold, 0 0 150px #ff4500; }
@@ -189,7 +185,6 @@
             100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; text-shadow: 0 0 30px rgba(255,255,255,0.9); }
         }
 
-        /* 不正解アニメーション：上から急降下して激しく左右に揺れ、青く光る */
         @keyframes flashyIncorrect {
             0% { transform: translate(-50%, -200%) scale(3); opacity: 0; }
             20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; text-shadow: 0 0 150px #00bfff; }
@@ -231,10 +226,11 @@
 <div id="app-container">
     <header>芥川龍之介 文学史クイズ</header>
 
+    <!-- スタート画面 -->
     <div id="start-screen" class="screen active">
         <div style="padding: 40px 20px;">
             <p style="text-align: center; margin-bottom: 30px; font-size: 18px;">
-                大正文学の巨星・芥川龍之介の軌跡を辿る全10問のクイズです。<br>情報を入力して開始してください。
+                大正文学の巨星・芥川龍之介の軌跡を辿る全13問のクイズです。<br>情報を入力して開始してください。
             </p>
             <div class="input-group">
                 <label for="user-class">クラス</label>
@@ -266,21 +262,26 @@
         </div>
     </div>
 
+    <!-- クイズ画面 -->
     <div id="quiz-screen" class="screen" style="position: relative;">
         <div id="quiz-background"></div>
-        <div id="feedback-overlay"></div> <div class="quiz-content">
+        <div id="feedback-overlay"></div> <!-- ド派手な〇×表示用 -->
+        <div class="quiz-content">
             <div class="question-number" id="q-number">第1問</div>
             <div class="question-text" id="q-text">ここに問題文が表示されます。</div>
             <div class="options-container" id="options-area">
-                </div>
+                <!-- 選択肢ボタンがここに生成されます -->
+            </div>
         </div>
     </div>
 
+    <!-- 結果画面 -->
     <div id="result-screen" class="screen">
         <div class="result-content">
             <h2>修了証・結果発表</h2>
             <div class="result-info" id="result-user-info">
-                </div>
+                <!-- ユーザー情報がここに表示されます -->
+            </div>
             <p>あなたの正答率は…</p>
             <div class="score-display" id="result-score">0%</div>
             <p class="feedback-text" id="result-feedback">お疲れ様でした！</p>
@@ -290,7 +291,7 @@
 </div>
 
 <script>
-    // クイズのデータ
+    // クイズのデータ（全13問）
     const quizData = [
         {
             question: "芥川龍之介が中心となって活躍し、理知的な構成や技巧を凝らした作風で知られる大正時代の文学流派は何と呼ばれるでしょうか？",
@@ -351,6 +352,24 @@
             options: ["プロレタリア文学", "浪漫主義文学", "反自然主義文学", "啓蒙主義文学"],
             correct: 2,
             bgImage: "https://picsum.photos/seed/akutagawa10/800/600"
+        },
+        {
+            question: "次のうち、芥川龍之介の作品はどれでしょうか？",
+            options: ["こころ", "舞姫", "地獄変", "人間失格"],
+            correct: 2,
+            bgImage: "https://picsum.photos/seed/akutagawa11/800/600"
+        },
+        {
+            question: "次のうち、芥川龍之介が書いた作品はどれでしょうか？",
+            options: ["河童", "山月記", "雪国", "注文の多い料理店"],
+            correct: 0,
+            bgImage: "https://picsum.photos/seed/akutagawa12/800/600"
+        },
+        {
+            question: "日本の近代文学を代表する次の作品のうち、芥川龍之介の著作はどれでしょうか？",
+            options: ["暗夜行路", "檸檬", "細雪", "杜子春"],
+            correct: 3,
+            bgImage: "https://picsum.photos/seed/akutagawa13/800/600"
         }
     ];
 
@@ -423,9 +442,9 @@
         const correctIndex = quizData[currentQuestionIndex].correct;
         const feedbackOverlay = document.getElementById('feedback-overlay');
         
-        // 前のアニメーションクラスをリセット（毎回アニメーションを最初から再生するため）
+        // 前のアニメーションクラスをリセット
         feedbackOverlay.classList.remove('feedback-correct', 'feedback-incorrect');
-        void feedbackOverlay.offsetWidth; // リフローを強制してアニメーションをリセット
+        void feedbackOverlay.offsetWidth; 
         
         // 正誤判定と〇×の設定
         if (selectedIndex === correctIndex) {
@@ -440,7 +459,7 @@
         // 〇×を表示
         feedbackOverlay.style.display = "block";
 
-        // アニメーションをしっかり見せるために1.2秒(1200ms)待ってから次の問題へ
+        // アニメーション完了後に次の問題へ
         setTimeout(() => {
             feedbackOverlay.style.display = "none";
             currentQuestionIndex++;
@@ -471,7 +490,7 @@
         } else if (accuracyRate >= 70) {
             feedback = "よくできました！文学史の基礎がしっかり身についています。";
         } else if (accuracyRate >= 40) {
-            feedback = "惜しい！授業ノートを見直して、もう一度挑戦してみましょう。";
+            feedback = "惜しい！もう一度挑戦してみましょう。";
         } else {
             feedback = "ここからがスタートです！文学史への理解を深めていきましょう。";
         }
