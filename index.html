@@ -52,29 +52,6 @@
             display: flex;
         }
 
-        /* スタート画面の入力フォーム */
-        .input-group {
-            margin: 15px auto;
-            width: 80%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .input-group label {
-            font-weight: bold;
-            width: 30%;
-            text-align: right;
-            margin-right: 15px;
-        }
-        .input-group input, .input-group select {
-            width: 60%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-family: inherit;
-        }
-
         .btn {
             background-color: #8b1c1c;
             color: #fff;
@@ -201,14 +178,6 @@
             padding: 40px;
             text-align: center;
         }
-        .result-info {
-            font-size: 20px;
-            margin-bottom: 20px;
-            background-color: #f0e6d2;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px dashed #8b1c1c;
-        }
         .score-display {
             font-size: 48px;
             color: #8b1c1c;
@@ -229,35 +198,9 @@
     <!-- スタート画面 -->
     <div id="start-screen" class="screen active">
         <div style="padding: 40px 20px;">
-            <p style="text-align: center; margin-bottom: 30px; font-size: 18px;">
-                大正文学の巨星・芥川龍之介の軌跡を辿る全13問のクイズです。<br>情報を入力して開始してください。
+            <p style="text-align: center; margin-bottom: 30px; font-size: 18px; line-height: 1.8;">
+                大正文学の巨星・芥川龍之介の軌跡を辿る全13問のクイズです。<br>下のボタンを押して開始してください。
             </p>
-            <div class="input-group">
-                <label for="user-class">クラス</label>
-                <select id="user-class">
-                    <option value="A組">A組</option>
-                    <option value="B組">B組</option>
-                    <option value="C組">C組</option>
-                    <option value="D組">D組</option>
-                    <option value="E組">E組</option>
-                    <option value="F組">F組</option>
-                    <option value="G組">G組</option>
-                    <option value="H組">H組</option>
-                    <option value="I組">I組</option>
-                    <option value="J組">J組</option>
-                    <option value="K組">K組</option>
-                    <option value="L組">L組</option>
-                    <option value="M組">M組</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="student-no">名簿番号</label>
-                <input type="number" id="student-no" placeholder="例: 15" min="1" max="50">
-            </div>
-            <div class="input-group">
-                <label for="student-name">氏名</label>
-                <input type="text" id="student-name" placeholder="例: 芥川 太郎">
-            </div>
             <button class="btn" onclick="startQuiz()">クイズを始める</button>
         </div>
     </div>
@@ -278,10 +221,7 @@
     <!-- 結果画面 -->
     <div id="result-screen" class="screen">
         <div class="result-content">
-            <h2>修了証・結果発表</h2>
-            <div class="result-info" id="result-user-info">
-                <!-- ユーザー情報がここに表示されます -->
-            </div>
+            <h2>結果発表</h2>
             <p>あなたの正答率は…</p>
             <div class="score-display" id="result-score">0%</div>
             <p class="feedback-text" id="result-feedback">お疲れ様でした！</p>
@@ -375,13 +315,6 @@
 
     let currentQuestionIndex = 0;
     let score = 0;
-    
-    // ユーザー情報
-    let userInfo = {
-        userClass: "",
-        studentNo: "",
-        name: ""
-    };
 
     // 画面切り替え関数
     function showScreen(screenId) {
@@ -393,19 +326,6 @@
 
     // クイズ開始
     function startQuiz() {
-        const userClass = document.getElementById('user-class').value;
-        const studentNo = document.getElementById('student-no').value.trim();
-        const studentName = document.getElementById('student-name').value.trim();
-
-        if (!studentNo || !studentName) {
-            alert("名簿番号と氏名を正しく入力してください。");
-            return;
-        }
-
-        userInfo.userClass = userClass;
-        userInfo.studentNo = studentNo;
-        userInfo.name = studentName;
-
         currentQuestionIndex = 0;
         score = 0;
         
@@ -476,12 +396,6 @@
     function showResult() {
         const accuracyRate = Math.round((score / quizData.length) * 100);
 
-        const infoHtml = `
-            <strong>${userInfo.userClass}</strong><br>
-            出席番号: <strong>${userInfo.studentNo}</strong> 番<br>
-            氏名: <strong>${userInfo.name}</strong> さん
-        `;
-        document.getElementById('result-user-info').innerHTML = infoHtml;
         document.getElementById('result-score').innerText = `${accuracyRate} %`;
 
         let feedback = "";
@@ -490,7 +404,7 @@
         } else if (accuracyRate >= 70) {
             feedback = "よくできました！文学史の基礎がしっかり身についています。";
         } else if (accuracyRate >= 40) {
-            feedback = "惜しい！もう一度挑戦してみましょう。";
+            feedback = "惜しい！授業ノートを見直して、もう一度挑戦してみましょう。";
         } else {
             feedback = "ここからがスタートです！文学史への理解を深めていきましょう。";
         }
