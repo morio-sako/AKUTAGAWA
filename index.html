@@ -288,7 +288,7 @@
             bgImage: "https://picsum.photos/seed/akutagawa9/800/600"
         },
         {
-            question: "芥川らが活躍した大正時代に文学界では、「ありのままの現実を描こうとする流派」が流行っていました。この流派に異を唱えた耽美派や白樺派と芥川らの新思潮派を合わせてなんという？",
+            question: "芥川らが活躍した大正時代の文学潮流は、「ありのままの現実を描こうとする流派」への反動でした。この潮流の総称は？",
             options: ["プロレタリア文学", "浪漫主義文学", "反自然主義文学", "啓蒙主義文学"],
             correct: 2,
             bgImage: "https://picsum.photos/seed/akutagawa10/800/600"
@@ -333,6 +333,15 @@
         showScreen('quiz-screen');
     }
 
+    // 配列をシャッフルする関数 (フィッシャー–イェーツのシャッフル)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     // 問題の読み込みと表示
     function loadQuestion() {
         const currentData = quizData[currentQuestionIndex];
@@ -344,17 +353,27 @@
         const optionsArea = document.getElementById('options-area');
         optionsArea.innerHTML = ""; 
         
-        currentData.options.forEach((optionText, index) => {
+        // 選択肢と元のインデックス（正解判定用）をペアにして配列化
+        let optionsWithOriginalIndex = currentData.options.map((optionText, index) => {
+            return { text: optionText, originalIndex: index };
+        });
+
+        // 選択肢をランダムにシャッフル
+        optionsWithOriginalIndex = shuffleArray(optionsWithOriginalIndex);
+
+        // シャッフルされた選択肢のボタンを生成
+        optionsWithOriginalIndex.forEach((item) => {
             const button = document.createElement('button');
             button.className = 'option-btn';
-            button.innerText = optionText;
-            button.onclick = () => checkAnswer(index, button);
+            button.innerText = item.text;
+            // 判定には元のインデックス（originalIndex）を渡す
+            button.onclick = () => checkAnswer(item.originalIndex, button);
             optionsArea.appendChild(button);
         });
     }
 
     // 答え合わせとド派手なフィードバック表示
-    function checkAnswer(selectedIndex, clickedButton) {
+    function checkAnswer(selectedOriginalIndex, clickedButton) {
         // 全てのボタンを一時的に無効化し、連打を防ぐ
         const buttons = document.querySelectorAll('.option-btn');
         buttons.forEach(btn => btn.disabled = true);
@@ -366,8 +385,8 @@
         feedbackOverlay.classList.remove('feedback-correct', 'feedback-incorrect');
         void feedbackOverlay.offsetWidth; 
         
-        // 正誤判定と〇×の設定
-        if (selectedIndex === correctIndex) {
+        // 正誤判定と〇×の設定（シャッフル前の元のインデックス同士で比較）
+        if (selectedOriginalIndex === correctIndex) {
             score++;
             feedbackOverlay.innerText = "〇";
             feedbackOverlay.classList.add('feedback-correct');
